@@ -19,13 +19,14 @@ const config = {
 }
 
 const FlapVelocity = 310;
-const PipeSpawnTime = 7000;
-const PipeVelocity = 4;
+const PipeSpawnTime = 3000;
+const PipeVelocity = 150;
 const MinPipeHeight = 100;
 const MinPipePlayerSpace = 150;
 
 let bird = null;
 let pipe = null;
+var pipes = null;
 let pipeTimeCount = 0;
 
 function preload(){
@@ -41,49 +42,45 @@ function create (){
   this.physics.add.existing(bird);
 
   this.input.keyboard.on("keydown-SPACE", flap);
+
+  pipes = this.physics.add.group({
+    allowGravity: false,
+    immovable: true
+  });
+
+  this.physics.add.collider(bird, pipes, gameOver, null, this);
+
+  spawnPipe();
+
+  this.time.addEvent({
+    delay: PipeSpawnTime,
+    callback: () => {
+      spawnPipe();
+    },
+    loop: true
+  });
 }
 
 function update(time, delta){
-  pipeTimeCount += delta * PipeVelocity     ;
-
-  if (pipeTimeCount >= PipeSpawnTime){
-    spawnPipes(this)
-    pipeTimeCount = 0;
-  }
+  
 }
 
 function flap() {
   bird.body.velocity.y = -FlapVelocity;
 }
 
-function spawnPipes(game){
-  let yPosition = Math.random() * (GetAvailablePipeArea() - MinPipePlayerSpace) - 200;
-
-  let pivot1 = {x: 0, y: 0};
-  let pivot2 = {x: 0, y: 0};
-
-  spawnPipe(game, yPosition, pivot1);
-  spawnPipe(game, yPosition + MinPipePlayerSpace + 500, pivot2);
+function spawnPipe(){
+  var spawnPosition = Phaser.Math.Between(50, 250);
+  var gapSize = Phaser.Math.Between(100, 300);
+  var upper = pipes.create(config.width / 2, spawnPosition / 2, "pipe").setOrigin(0, 1);
+  var lower = pipes.create(config.width / 2, spawnPosition + gapSize, "pipe").setOrigin(0);
+  upper.body.velocity.x = -PipeVelocity;
+  lower.body.velocity.x = -PipeVelocity;
 }
 
-function spawnPipe(game, yPosition, pivot){
-  pipe = game.add.sprite(config.width + 50, yPosition, "pipe");
-  game.physics.add.existing(pipe);
-  
-  // pipe.setOrigin(pivot.x, pivot.y);
-  pipe.body.allowGravity = false;
-  pipe.body.immovable = true;
-  pipe.body.velocity.x = -180;
-
-  // game.physics.add.overlap(bird, pipe, onPipeHit(), null, game);
-}
-
-function GetAvailablePipeArea(){
-  return config.height - (MinPipeHeight * 2) + MinPipeHeight;
-}
-
-function onPipeHit(){
-  alert("Perdiste");
+function gameOver(){
+  alert("You lose");
+  this.scene.restart();
 }
 
 new Phaser.Game(config);
