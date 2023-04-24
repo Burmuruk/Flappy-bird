@@ -1,19 +1,28 @@
 const PIPE_SPAWN_TIME = 1500;
 const PIPE_VELOCITY = 300; 
+const DEFAULT_PIPE_SPAWN_POSITION_RANGE = [50, 250];
+const DEFAULT_PIPE_GAP_SIZE_RANGE = [100, 200];
 
 export default class PipeSystem {
-    constructor(scene) {
+    constructor(scene, layer) {
         this.scene = scene;
-        this.pipes = scene.physics.add.group({
+        this.group = scene.physics.add.group({
             allowGravity: false,
             immovable: true
         });
+
+        this.pipes = [];
+        this.pool = [];
+        this.layer = layer;
+        this.onPipeExited = ()=>{};
+        this.stopped = false;
+        this.spawnTimer = null;
     }
 
     start() {
         this.spawnPipe();
 
-        this.scene.time.addEvent({
+        this.spawnTimer = this.scene.time.addEvent({
             delay: PIPE_SPAWN_TIME,
             callback: () => {
                 this.spawnPipe();
@@ -22,16 +31,97 @@ export default class PipeSystem {
         });
     }
 
+    update(){
+        if(this.stopped) return;
+
+        for (let i = 0; i < this.pipes.length; i++) {
+            const pipe = this.pipes[i];
+            
+            if (pipe.hasExitedScreen()) {
+                this.moveToPool(pipe, i);
+                this.onPipeExited();
+                break;
+            }
+        }
+    }
+
+    stop(){
+        this.stopped = true;
+        if (this.spawnTimer){
+            this.spawnTimer.remove();
+        }
+
+        this.pipes.forEach(pipe =>{
+            pipe.setVelocity(0);
+        });
+    }
+
     spawnPipe() {
-        var spawnPosition = Phaser.Math.Between(50, 250);
-        var gapSize = Phaser.Math.Between(100, 300);
-        var upper = this.pipes.create(this.scene.config.width, spawnPosition, "pipe").setOrigin(0, 1);
-        var lower = this.pipes.create(this.scene.config.width, spawnPosition + gapSize, "pipe").setOrigin(0);
-        upper.body.velocity.x = -PIPE_VELOCITY;
-        lower.body.velocity.x = -PIPE_VELOCITY;
+        let pipe = null;
+
+        if (this.pool.length > 0) {
+            pipe = this.pool[0];    
+            pipe.resetPosition();
+            this.pool.splice(0, 1);
+        }
+        else{
+            pipe = new Pipe(this.group, this.scene.config.width, this.layer);
+            
+        }
+        
+        pipe.setVelocity(PIPE_VELOCITY);
+        pipe.setVisible(true);
+        this.pipes.push(pipe);
+    }
+
+    moveToPool(pipe, index) {
+        this.pipes.splice(index, 1);
+        this.pool.push(pipe);
+        pipe.setVisible(false);
+        pipe.setVelocity(0);
     }
 
     getGroup() {
-        return this.pipes;
+        return this.group;
+    }
+}
+
+class Pipe {
+    constructor(group, spawnX, layer){
+        this.group = group;
+        this.spawnX = spawnX;
+
+        this.pipeSpawnPositionRange = DEFAULT_PIPE_SPAWN_POSITION_RANGE;
+        this.pipeGapSizeRange = DEFAULT_PIPE_GAP_SIZE_RANGE;
+
+        var spawnPosition = Phaser.Math.Between(...this.pipeSpawnPositionRange);
+        var gapSize = Phaser.Math.Between(...this.pipeGapSizeRange);
+        this.upper = group.create(spawnX, spawnPosition, "pipe").setOrigin(0, 1);
+        this.lower = group.create(spawnX, spawnPosition + gapSize, "pipe").setOrigin(0);
+        layer.add([this.upper, this.lower]);
+    }
+
+    resetPosition() {
+        this.upper.x = this.spawnX;
+        this.lower.x = this.spawnX;
+        var spawnPosition = Phaser.Math.Between(...this.pipeSpawnPositionRange);
+        var gapSize = Phaser.Math.Between(...this.pipeGapSizeRange);
+        this.upper.y = spawnPosition;
+        this.lower.y = spawnPosition + gapSize;
+
+    }
+
+    setVelocity(velocity) {
+        this.upper.body.velocity.x = -PIPE_VELOCITY;
+        this.lower.body.velocity.x = -PIPE_VELOCITY;
+    }
+
+    setVisible(state) {
+        this.upper.visible = state;
+        this.lower.visible = state;
+    }
+
+    hasExitedScreen() {
+        return this.upper.getBounds().right < 0;
     }
 }
