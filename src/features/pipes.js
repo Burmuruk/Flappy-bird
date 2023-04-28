@@ -112,8 +112,8 @@ class Pipe {
     }
 
     setVelocity(velocity) {
-        this.upper.body.velocity.x = -PIPE_VELOCITY;
-        this.lower.body.velocity.x = -PIPE_VELOCITY;
+        this.upper.body.velocity.x = -velocity;
+        this.lower.body.velocity.x = -velocity;
     }
 
     setVisible(state) {

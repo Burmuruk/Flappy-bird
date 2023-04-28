@@ -23,8 +23,14 @@ export default class FlappyBirdScene extends Phaser.Scene{
     showMenu(menu){
         let yPos = menu.firstItemPosition.y;
         menu.item.forEach(item => {
-            this.add.text(menu.firstItemPosition.x, yPos, item.label, item.style).setOrigin(menu.origin.x, menu.origin.y);
+            const textObject = this.add.text(menu.firstItemPosition.x, yPos, item.label, item.style)
+            .setOrigin(menu.origin.x, menu.origin.y)
+            .setInteractive();
             yPos += menu.spacing;
+
+            textObject.on("pointerup", item.onClick, this);
+            textObject.on("pointerover", () => { item.onMouseEnter(textObject) }, this);
+            textObject.on("pointerout", () => { item.onMouseExit(textObject) }, this);
         });
     }
 }

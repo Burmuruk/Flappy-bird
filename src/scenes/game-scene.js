@@ -11,6 +11,7 @@ export default class GameScene extends FlappyBirdScene {
         this.pipeSystem = null;
         this.score = null;
         this.pauseButon = null;
+        this.paused = false;
     }
 
     preload() {
@@ -45,6 +46,8 @@ export default class GameScene extends FlappyBirdScene {
     }
 
     update() {
+        this.paused = true;
+
         this.bird.checkOffBounds(()=>{
             this.gameOver();
         })
@@ -65,6 +68,34 @@ export default class GameScene extends FlappyBirdScene {
 
     pause(){
         this.physics.pause();
-        this.scene.pause();
+        this.paused = true;
+
+        const continueButtonCallbacks = {
+            onClick: () => this.resume(),
+            onMouseEnter: text => text.setFill("#0F0"),
+            onMouseExit: text => text.setFill("#FFF")
+        }
+
+        const quitButtonCallbacks = {
+            onClick: () => this.scene.start("MenuScene"),
+            onMouseEnter: text => text.setFill("#F00"),
+            onMouseExit: text => text.setFill("#FFF")
+        }
+
+        const mainMenu = {
+            item: [
+                { label: "Continue", style: { fontSize: "32px", fill: "#FFF" }, ...continueButtonCallbacks },
+                { label: "Quit", style: { fontSize: "32px", fill: "#FFF" }, ...quitButtonCallbacks }
+            ],
+            firstItemPosition: { x: this.config.width / 2, y: this.config.height / 2 },
+            origin: { x: 0.5, y: 0.5 },
+            spacing: 45
+        }
+        this.showMenu(mainMenu);
+    }
+
+    resume(){
+        this.physics.resume();
+        this.paused = false;
     }
 }

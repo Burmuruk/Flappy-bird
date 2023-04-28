@@ -12,12 +12,19 @@ export default class MenuScene extends FlappyBirdScene {
     create(){
         super.create();
         const playButtonCallbacks = {
-            
+            onClick: this.playButton_OnClick, 
+            onMouseEnter: this.anyButton_OnMouseEnter, 
+            onMouseExit: this.anyButton_OnMouseExit
+        }
+        const scoreButtonCallbacks = {
+            onClick: this.scoreButton_OnClick, 
+            onMouseEnter: this.anyButton_OnMouseEnter, 
+            onMouseExit: this.anyButton_OnMouseExit 
         }
         const mainMenu = {
             item: [
-                {label: "Play", style: {fontSize: "32px", fill: "#FFF"}, onClick: this.playButton_OnClick, OnMouseEnter: this.playButton_OnMouseEnter, onMouseExit: this.playButton_OnMouseExit},
-                { label: "Score", style: { fontSize: "32px", fill: "#FFF" }, onClick: this.scoreButton_OnClick, OnMouseEnter: this.scoreButton_OnMouseEnter, onMouseExit: this.scoreButton_OnMouseExit }
+                {label: "Play", style: {fontSize: "32px", fill: "#FFF"}, ...playButtonCallbacks},
+                { label: "Score", style: { fontSize: "32px", fill: "#FFF" }, ...scoreButtonCallbacks}
             ],
             firstItemPosition: {x: this.config.width / 2, y: this.config.height / 2},
             origin: {x: 0.5, y: 0.5},
@@ -27,26 +34,18 @@ export default class MenuScene extends FlappyBirdScene {
     }
 
     playButton_OnClick(){
-
-    }
-
-    playButton_OnMouseEnter(){
-
-    }
-
-    playButton_OnMouseExit(){
-
+        this.scene.start("GameScene");
     }
 
     scoreButton_OnClick(){
-
+        this.scene.start("ScoreScene");
     }
 
-    scoreButton_OnMouseEnter(){
-
+    anyButton_OnMouseEnter(text){
+        text.setFill("#0F0")
     }
 
-    scoreButton_OnMouseExit(){
-
+    anyButton_OnMouseExit(text){
+        text.setFill("#FFF")
     }
 }
