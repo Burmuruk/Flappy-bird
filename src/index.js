@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import GameScene from "./scenes/game-scene";
+import MenuScene from "./scenes/menu-scene";
 
 const SHARED_CONFIG = {
   width: 800,
@@ -16,7 +17,10 @@ const config = {
       debug: true
     }
   },
-  scene: [new GameScene(SHARED_CONFIG)]
+  scene: [
+    new MenuScene(SHARED_CONFIG), 
+    new GameScene(SHARED_CONFIG)
+  ]
 }
 
 new Phaser.Game(config);
